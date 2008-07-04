@@ -6,8 +6,6 @@
 
 # AASM code provided by Ana Nelson (http://ananelson.com/)
 
-require 'railroad/app_diagram'
-
 # Diagram for Acts As State Machine
 class AasmDiagram < AppDiagram
 
@@ -32,6 +30,15 @@ class AasmDiagram < AppDiagram
   
   private
   
+  def valid_model?( m )
+    File.open( m, 'r') do |f|
+      while (line = f.gets)
+        return false if /ActionMailer|Observer/ =~ line
+      end
+    end
+    return true
+  end
+  
   # Load model classes
   def load_classes
     begin
@@ -39,6 +46,7 @@ class AasmDiagram < AppDiagram
       files = Dir.glob("app/models/*.rb")
       files += Dir.glob("vendor/plugins/**/app/models/*.rb") if @options.plugins_models
       files -= @options.exclude                  
+      files = files.select{ |m| valid_model? m }
       files.each {|m| require m }
       enable_stdout
     rescue LoadError

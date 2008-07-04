@@ -4,8 +4,6 @@
 # Copyright 2007-2008 - Javier Smaldone (http://www.smaldone.com.ar)
 # See COPYING for more details
 
-require 'railroad/app_diagram'
-
 # RailRoad models diagram
 class ModelsDiagram < AppDiagram
 
@@ -23,6 +21,7 @@ class ModelsDiagram < AppDiagram
     files = Dir.glob("app/models/*.rb")
     files += Dir.glob("vendor/plugins/**/app/models/*.rb") if @options.plugins_models    
     files -= @options.exclude
+    files = files.select{ |m| valid_model? m }
     files.each do |f| 
       process_class extract_class_name(f).constantize
     end
@@ -46,8 +45,8 @@ class ModelsDiagram < AppDiagram
       files = Dir.glob("app/models/*.rb")
       files += Dir.glob("vendor/plugins/**/app/models/*.rb") if @options.plugins_models
       files -= @options.exclude
-      
-      files.select{ |m| valid_model? m }.each do |m| 
+      files = files.select{ |m| valid_model? m }
+      files.each do |m| 
         require m
       end
       enable_stdout
@@ -80,11 +79,11 @@ class ModelsDiagram < AppDiagram
 	content_columns = current_class.content_columns
 	
 	if @options.hide_magic 
-          # From patch #13351
-          # http://wiki.rubyonrails.org/rails/pages/MagicFieldNames
           magic_fields = [
           # Restful Authentication
           "login", "crypted_password", "salt", "remember_token", "remember_token_expires_at", "activation_code", "activated_at",
+          # From patch #13351
+          # http://wiki.rubyonrails.org/rails/pages/MagicFieldNames
           "created_at", "created_on", "updated_at", "updated_on",
           "lock_version", "type", "id", "position", "parent_id", "lft", 
           "rgt", "quote", "template"
