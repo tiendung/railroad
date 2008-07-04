@@ -83,6 +83,8 @@ class ModelsDiagram < AppDiagram
           # From patch #13351
           # http://wiki.rubyonrails.org/rails/pages/MagicFieldNames
           magic_fields = [
+          # Restful Authentication
+          "login", "crypted_password", "salt", "remember_token", "remember_token_expires_at", "activation_code", "activated_at",
           "created_at", "created_on", "updated_at", "updated_on",
           "lock_version", "type", "id", "position", "parent_id", "lft", 
           "rgt", "quote", "template"
