@@ -18,34 +18,37 @@ class ModelsDiagram < AppDiagram
   # Process model files
   def generate
     STDERR.print "Generating models diagram\n" if @options.verbose
-    files = Dir.glob("app/models/*.rb")
+    base = "app/models/"
+    files = Dir.glob("app/models/**/*.rb")
     files += Dir.glob("vendor/plugins/**/app/models/*.rb") if @options.plugins_models    
     files -= @options.exclude
-    files = files.select{ |m| valid_model? m }
-    files.each do |f| 
-      process_class extract_class_name(f).constantize
+    files.each do |file| 
+      model_name = file.gsub(/^#{base}([\w_\/\\]+)\.rb/, '\1')      
+      # Hack to skip all xxx_related.rb files
+      next if /_related/i =~ model_name
+
+      klass = begin
+        model_name.classify.constantize
+      rescue LoadError
+        model_name.gsub!(/.*[\/\\]/, '')
+        retry
+      rescue NameError
+        next
+      end
+
+      process_class klass
     end
   end 
 
   private
 
-  def valid_model?( m )
-    File.open( m, 'r') do |f|
-      while (line = f.gets)
-        return false if /ActionMailer|Observer/ =~ line
-      end
-    end
-    return true
-  end
-  
   # Load model classes
   def load_classes
     begin
       disable_stdout
-      files = Dir.glob("app/models/*.rb")
+      files = Dir.glob("app/models/**/*.rb")
       files += Dir.glob("vendor/plugins/**/app/models/*.rb") if @options.plugins_models
       files -= @options.exclude
-      files = files.select{ |m| valid_model? m }
       files.each do |m| 
         require m
       end
@@ -69,7 +72,7 @@ class ModelsDiagram < AppDiagram
 
 
       node_attribs = []
-      if @options.brief || current_class.abstract_class?
+      if @options.brief || current_class.abstract_class? || current_class.superclass != ActiveRecord::Base
         node_type = 'model-brief'
       else 
         node_type = 'model'
@@ -150,7 +153,7 @@ class ModelsDiagram < AppDiagram
     else
       assoc_name = assoc.name.to_s
     end 
-
+#    STDERR.print "#{assoc_name}\n"
     if assoc.macro.to_s == 'has_one' 
       assoc_type = 'one-one'
     elsif assoc.macro.to_s == 'has_many' && (! assoc.options[:through])
