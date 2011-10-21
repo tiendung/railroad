@@ -30,13 +30,13 @@ class AppDiagram
         exit 2
       end
     end
-    
-    if @options.xmi 
+
+    if @options.xmi
         STDERR.print "Generating XMI diagram\n" if @options.verbose
     	STDOUT.print @graph.to_xmi
     else
         STDERR.print "Generating DOT graph\n" if @options.verbose
-        STDOUT.print @graph.to_dot 
+        STDOUT.print @graph.to_dot
     end
 
     if @options.output
@@ -44,7 +44,7 @@ class AppDiagram
     end
   end # print
 
-  private 
+  private
 
   # Prevents Rails application from writing to STDOUT
   def disable_stdout
@@ -52,7 +52,7 @@ class AppDiagram
     STDOUT.reopen(PLATFORM =~ /mswin/ ? "NUL" : "/dev/null")
   end
 
-  # Restore STDOUT  
+  # Restore STDOUT
   def enable_stdout
     STDOUT.reopen(@old_stdout)
   end
